@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuração - Formação Cibersegurança</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #34495e;
+        }
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Configuração da Formação em Cibersegurança Hospitalar</h1>
+        
+        <form id="configForm">
+            <div class="form-group">
+                <label for="tituloFormacao">Título da Formação:</label>
+                <input type="text" id="tituloFormacao" name="tituloFormacao" 
+                       value="Identificação de Phishing em Ambiente Hospitalar" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="descricao">Descrição:</label>
+                <textarea id="descricao" name="descricao" required>Formação focada em reconhecer tentativas de phishing direcionadas a profissionais de saúde, com exemplos reais de emails maliciosos recebidos em contexto hospitalar.</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="urlApresentacao">URL da Apresentação (Slides):</label>
+                <input type="text" id="urlApresentacao" name="urlApresentacao" 
+                       value="https://docs.google.com/presentation/d/exemplo" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="numQuestoesPorQuiz">Número de Questões por Quiz:</label>
+                <input type="number" id="numQuestoesPorQuiz" name="numQuestoesPorQuiz" 
+                       value="10" min="5" max="20" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="notaMinimaAprovacao">Nota Mínima de Aprovação (%):</label>
+                <input type="number" id="notaMinimaAprovacao" name="notaMinimaAprovacao" 
+                       value="80" min="0" max="100" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="tempoLimiteMinutos">Tempo Limite (minutos):</label>
+                <input type="number" id="tempoLimiteMinutos" name="tempoLimiteMinutos" 
+                       value="60" min="15" max="180" required>
+            </div>
+            
+            <button type="submit">Guardar Configuração</button>
+        </form>
+    </div>
+</body>
+</html>
