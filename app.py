@@ -1,3 +1,4 @@
+from factories.activity_factory import ActivityInstanceFactory
 from flask import Flask, request, jsonify, render_template
 import json
 from datetime import datetime
@@ -40,7 +41,7 @@ def get_json_params():
 # ============================================
 @app.route('/deploy', methods=['POST'])
 def deploy():
-    """Cria instância de atividade para estudante"""
+    """Cria instância de atividade para estudante - USANDO FACTORY METHOD"""
     try:
         data = request.json
         
@@ -49,23 +50,23 @@ def deploy():
         student_id = data.get('inveniraStdID')
         json_params = data.get('json_params', {})
         
-        # Criar instância única
-        instance_id = str(uuid.uuid4())
+        # USAR FACTORY METHOD para criar instância apropriada
+        factory = ActivityInstanceFactory()
+        instance = factory.create_instance(activity_id, student_id, json_params)
         
-        # Armazenar instância (mock)
-        instances[instance_id] = {
-            'activityID': activity_id,
-            'studentID': student_id,
-            'config': json_params,
-            'createdAt': datetime.now().isoformat(),
-            'status': 'active'
-        }
+        # Armazenar instância (converter para dict)
+        instances[instance.instance_id] = instance.to_dict()
         
         # Gerar URL de acesso
         base_url = request.url_root.rstrip('/')
-        access_url = f"{base_url}/training/{instance_id}"
+        access_url = f"{base_url}/training/{instance.instance_id}"
         
-        return jsonify({"url": access_url})
+        return jsonify({
+            "url": access_url,
+            "instanceType": instance.get_training_type(),
+            "durationMinutes": instance.get_duration_minutes(),
+            "requiresCertification": instance.requires_certification()
+        })
     
     except Exception as e:
         return jsonify({"error": str(e)}), 400
@@ -348,5 +349,5 @@ def index():
 # ============================================
 if __name__ == "__main__":
     import os
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
