@@ -4,6 +4,7 @@ import json
 from datetime import datetime
 import uuid
 import os
+from adapters import SlideProvider, MockSlideAdapter, GoogleSlidesAdapter
 
 app = Flask(__name__)
 
@@ -11,6 +12,48 @@ app = Flask(__name__)
 activities = {}
 instances = {}
 analytics_data = {}
+
+
+
+# ===== NOVO - ADAPTER PATTERN (TÓPICO 5) =====
+
+def get_slide_adapter(config):
+    """
+    Factory Method para criar adapter apropriado baseado na configuração.
+    
+    Combina Factory Method (Tópico 4) com Adapter (Tópico 5).
+    
+    Args:
+        config: Configuração da atividade
+    
+    Returns:
+        SlideProvider: Adapter apropriado
+    """
+    slide_source = config.get('slide_source', 'mock')
+    slide_url = config.get('slide_url', '')
+    
+    if slide_source == 'google_slides':
+        # Extrair presentation_id da URL
+        if 'presentation/d/' in slide_url:
+            presentation_id = slide_url.split('presentation/d/')[1].split('/')[0]
+            return GoogleSlidesAdapter(presentation_id)
+        else:
+            print(f"Warning: Invalid Google Slides URL, using mock")
+            return MockSlideAdapter()
+    
+    elif slide_source == 'powerpoint':
+        # TODO: Implementar PowerPointAdapter no futuro
+        print(f"Warning: PowerPoint not implemented, using mock")
+        return MockSlideAdapter()
+    
+    else:
+        # Default: mock adapter
+        num_slides = config.get('num_slides', 10)
+        return MockSlideAdapter(num_slides=num_slides)
+
+# ===== FIM DO ADAPTER PATTERN =====
+
+
 
 # ============================================
 # ENDPOINT 1: GET /config
@@ -140,98 +183,86 @@ def get_analytics():
 # ============================================
 # ROTA ADICIONAL: Página da formação
 # ============================================
-@app.route('/training/<instance_id>', methods=['GET'])
-def training_page(instance_id):
-    """Página onde estudante acede à formação"""
-    if instance_id in instances:
-        instance = instances[instance_id]
-        return f"""
-        <!DOCTYPE html>
-        <html lang="pt">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Formação em Cibersegurança</title>
-            <style>
-                body {{
-                    font-family: Arial, sans-serif;
-                    max-width: 900px;
-                    margin: 50px auto;
-                    padding: 20px;
-                    background-color: #f0f8ff;
-                }}
-                .container {{
-                    background: white;
-                    padding: 30px;
-                    border-radius: 8px;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                }}
-                h1 {{
-                    color: #2c3e50;
-                    border-bottom: 3px solid #3498db;
-                    padding-bottom: 10px;
-                }}
-                .info {{
-                    background: #ecf0f1;
-                    padding: 15px;
-                    border-radius: 5px;
-                    margin: 20px 0;
-                }}
-                .status {{
-                    display: inline-block;
-                    padding: 5px 15px;
-                    background: #27ae60;
-                    color: white;
-                    border-radius: 20px;
-                    font-size: 14px;
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>🛡️ Formação em Cibersegurança Hospitalar</h1>
-                
-                <div class="info">
-                    <p><strong>Instância ID:</strong> {instance_id}</p>
-                    <p><strong>Estudante ID:</strong> {instance['studentID']}</p>
-                    <p><strong>Status:</strong> <span class="status">{instance['status']}</span></p>
-                    <p><strong>Criada em:</strong> {instance['createdAt']}</p>
-                </div>
-                
-                <h2>📚 Conteúdo da Formação</h2>
-                <p>Esta interface será desenvolvida nas próximas semanas com:</p>
-                <ul>
-                    <li>Visualizador de slides interativo</li>
-                    <li>Quizzes de avaliação</li>
-                    <li>Tracking de progressão</li>
-                    <li>Certificado final</li>
-                </ul>
-                
-                <p style="margin-top: 30px; color: #7f8c8d; font-size: 14px;">
-                    <em>Protótipo - Semana 1 - Activity Provider</em>
-                </p>
-            </div>
-        </body>
-        </html>
-        """
-    else:
-        return """
-        <!DOCTYPE html>
-        <html lang="pt">
-        <head>
-            <meta charset="UTF-8">
-            <title>Erro</title>
-            <style>
-                body { font-family: Arial; text-align: center; padding: 50px; }
-                h1 { color: #e74c3c; }
-            </style>
-        </head>
-        <body>
-            <h1>⚠️ Instância não encontrada</h1>
-            <p>A instância solicitada não existe ou expirou.</p>
-        </body>
-        </html>
-        """, 404
+@app.route('/training/<instance_id>')
+def training(instance_id):
+    """
+    Endpoint de formação usando Adapter Pattern (Tópico 5).
+    
+    Demonstra uso do SlideProvider sem conhecer fonte real.
+    """
+    # Verificar se instância existe
+    if instance_id not in instances:
+        return jsonify({"error": "Training instance not found"}), 404
+    
+    instance_data = instances[instance_id]
+    config = instance_data.get('config', {})
+    
+    # ADAPTER PATTERN: Obter adapter apropriado
+    slide_adapter = get_slide_adapter(config)
+    
+    # Activity Manager trabalha com interface comum
+    try:
+        total_slides = slide_adapter.get_total_slides()
+        all_slides = slide_adapter.get_all_slides()
+        
+        return jsonify({
+            'instance_id': instance_id,
+            'title': config.get('title', 'Training'),
+            'type': instance_data.get('type', 'basic'),
+            'duration_minutes': instance_data.get('durationMinutes', 30),
+            'total_slides': total_slides,
+            'slides': all_slides,
+            'current_slide': 1
+        })
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
+# ============================================
+# 
+# ============================================
+
+@app.route('/training/<instance_id>/slide/<int:slide_num>')
+def get_slide(instance_id, slide_num):
+    """
+    Endpoint para obter slide específico (Adapter Pattern).
+    """
+    if instance_id not in instances:
+        return jsonify({"error": "Training instance not found"}), 404
+    
+    instance_data = instances[instance_id]
+    config = instance_data.get('config', {})
+    
+    # ADAPTER PATTERN
+    slide_adapter = get_slide_adapter(config)
+    
+    try:
+        slide_content = slide_adapter.get_slide_content(slide_num)
+        thumbnail = slide_adapter.get_slide_thumbnail(slide_num)
+        
+        return jsonify({
+            'instance_id': instance_id,
+            'slide': slide_content,
+            'thumbnail': thumbnail,
+            'navigation': {
+                'current': slide_num,
+                'total': slide_adapter.get_total_slides(),
+                'has_previous': slide_num > 1,
+                'has_next': slide_num < slide_adapter.get_total_slides()
+            }
+        })
+    
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
+
+
 
 # ============================================
 # HEALTH CHECK
