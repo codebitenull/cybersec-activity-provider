@@ -221,7 +221,7 @@ def training(instance_id):
 
 
 # ============================================
-# 
+#  
 # ============================================
 
 @app.route('/training/<instance_id>/slide/<int:slide_num>')
