@@ -1,6 +1,6 @@
 """
 Google Slides Adapter - integração com Google Slides API
-
+ 
 NOTA: Esta é uma implementação stub/básica para demonstração do padrão.
 Em produção, requereria autenticação OAuth2 e biblioteca google-api-python-client.
 """

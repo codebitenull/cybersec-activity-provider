@@ -1,6 +1,6 @@
 """
 Package de Adapters para diferentes fontes de slides.
-
+ 
 Implementa o padrão Adapter (GoF) para permitir integração
 com múltiplas fontes mantendo interface comum.
 """

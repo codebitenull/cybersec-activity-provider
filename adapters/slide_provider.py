@@ -1,6 +1,6 @@
 """
 Interface abstrata para fornecedores de slides (Adapter Pattern)
-
+ 
 Este módulo implementa o padrão Adapter para permitir integração
 com diferentes fontes de slides mantendo interface comum.
 """

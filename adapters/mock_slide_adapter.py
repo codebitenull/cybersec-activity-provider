@@ -1,6 +1,6 @@
 """
 Mock Adapter para slides - usado para desenvolvimento e testes
-
+ 
 Este adapter gera conteúdo fictício sobre cibersegurança hospitalar,
 permitindo testar o sistema sem dependências de APIs externas.
 """
