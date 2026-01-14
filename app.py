@@ -5,6 +5,7 @@ from datetime import datetime
 import uuid
 import os
 from adapters import SlideProvider, MockSlideAdapter, GoogleSlidesAdapter
+from processors import BasicTrainingProcessor,AdvancedTrainingProcessor,CertificationTrainingProcessor
 
 app = Flask(__name__)
 
@@ -13,7 +14,15 @@ activities = {}
 instances = {}
 analytics_data = {}
 
-
+# ===== NOVO - TEMPLATE PATTERN (TÓPICO 6) =====
+def get_processor(training_type, instance_data, student_id, slide_adapter):
+    processors = {
+        'basic': BasicTrainingProcessor,
+        'advanced': AdvancedTrainingProcessor,
+        'certification': CertificationTrainingProcessor
+    }
+    processor_class = processors.get(training_type, BasicTrainingProcessor)
+    return processor_class(instance_data, student_id, slide_adapter)
 
 # ===== NOVO - ADAPTER PATTERN (TÓPICO 5) =====
 
@@ -374,6 +383,78 @@ def index():
     </body>
     </html>
     """
+
+
+# ============================================
+# 
+# ============================================
+@app.route('/training/<instance_id>/process', methods=['POST'])
+def process_training(instance_id):
+    """Processa formação usando Template Method Pattern"""
+    if instance_id not in instances:
+        return jsonify({"error": "Training instance not found"}), 404
+    
+    data = request.get_json()
+    student_id = data.get('student_id')
+    
+    if not student_id:
+        return jsonify({"error": "student_id required"}), 400
+    
+    instance_data = instances[instance_id]
+    config = instance_data.get('config', {})
+    training_type = instance_data.get('type', 'basic')
+    
+    # Adapter Pattern (Tópico 5)
+    slide_adapter = get_slide_adapter(config)
+    
+    # Template Method Pattern (Tópico 6)
+    processor = get_processor(training_type, instance_data, student_id, slide_adapter)
+    
+    try:
+        result = processor.process()
+        return jsonify({'instance_id': instance_id, 'result': result}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ============================================
+#  Processa formação
+# ============================================
+@app.route('/training/<instance_id>/workflow', methods=['GET'])
+def get_workflow_info(instance_id):
+    """Mostra workflow do Template Method"""
+    if instance_id not in instances:
+        return jsonify({"error": "Training instance not found"}), 404
+    
+    instance_data = instances[instance_id]
+    training_type = instance_data.get('type', 'basic')
+    
+    workflows = {
+        'basic': {
+            'steps': ['1. Validate (no requirements)', '2. Load slides', 
+                     '3. Initialize', '4. Evaluate (>=70%)', '5. Finalize'],
+            'passing_score': 70,
+            'certification': False
+        },
+        'advanced': {
+            'steps': ['1. Validate (basic required)', '2. Load slides',
+                     '3. Initialize', '4. Evaluate (>=80%)', '5. Finalize + RGPD cert'],
+            'passing_score': 80,
+            'certification': 'RGPD'
+        },
+        'certification': {
+            'steps': ['1. Validate (advanced + exp)', '2. Load slides',
+                     '3. Initialize', '4. Evaluate weighted (>=85%)', '5. Finalize + pro cert'],
+            'passing_score': 85,
+            'certification': 'Professional'
+        }
+    }
+    
+    return jsonify({
+        'instance_id': instance_id,
+        'workflow': workflows.get(training_type, workflows['basic']),
+        'pattern': 'Template Method'
+    })
+
 
 # ============================================
 # MAIN - Compatível com Render/Gunicorn
