@@ -51,13 +51,17 @@ class BasicTrainingProcessor(TrainingProcessor):
         Critério: Score >= 70% para passar
         Sem ponderação, sem certificação.
         
+        REFACTORING T7: Uso de Extract Method da classe base
+        Logging movido para métodos comuns (_log_evaluation_start, _log_evaluation_result)
+        
         NOTA: Por agora retorna mock data. Em implementação real,
         receberia respostas do quiz e calcularia score real.
         
         Returns:
             dict: Resultado da avaliação
         """
-        print(f"[BasicProcessor] Evaluating student {self.student_id}")
+        # REFATORAÇÃO: Usa método comum em vez de código duplicado
+        self._log_evaluation_start()
         
         # TODO: Em implementação real, receber respostas do quiz
         # Por agora, simula avaliação
@@ -79,10 +83,8 @@ class BasicTrainingProcessor(TrainingProcessor):
             'evaluation_type': 'basic'
         }
         
-        if passed:
-            print(f"[BasicProcessor] Student PASSED with {score}%")
-        else:
-            print(f"[BasicProcessor] Student FAILED with {score}%")
+        # REFATORAÇÃO: Usa método comum em vez de código duplicado
+        self._log_evaluation_result(score, passed)
         
         return evaluation_result
     

@@ -22,7 +22,7 @@ class TrainingProcessor(ABC):
     qualquer formação. Subclasses implementam os passos que variam
     (validate_prerequisites, evaluate).
     
-    Padrão: Template Method (GoF pp. 325-330) 
+    Padrão: Template Method (GoF pp. 325-330)
     
     Workflow fixo:
     1. validate_prerequisites() - Verifica se estudante pode fazer formação
@@ -230,3 +230,72 @@ class TrainingProcessor(ABC):
     def get_duration_minutes(self) -> int:
         """Retorna duração esperada da formação."""
         return self.instance_data.get('durationMinutes', 30)
+    
+    # =========================================================================
+    # REFATORAÇÃO T7 - Extract Method + Pull Up Method
+    # Métodos adicionados para eliminar código duplicado (Cut-and-Paste)
+    # =========================================================================
+    
+    def _log_evaluation_start(self) -> None:
+        """
+        Logging do início da avaliação.
+        
+        REFACTORING T7: Extract Method (Fowler, 2018)
+        Código estava duplicado nos 3 processors (Basic, Advanced, Certification).
+        Movido para classe base usando Pull Up Method.
+        
+        Antes (3× repetido):
+            print(f"[BasicProcessor] Evaluating student {self.student_id}")
+            print(f"[AdvancedProcessor] Evaluating student {self.student_id}")
+            print(f"[CertificationProcessor] Evaluating student {self.student_id}")
+        
+        Depois (1× na classe base):
+            self._log_evaluation_start()
+        """
+        processor_name = self.__class__.__name__
+        print(f"[{processor_name}] Evaluating student {self.student_id}")
+    
+    def _log_evaluation_result(self, score: float, passed: bool, 
+                                extra_info: str = "") -> None:
+        """
+        Logging do resultado da avaliação.
+        
+        REFACTORING T7: Extract Method + Pull Up Method
+        Código estava duplicado nos 3 processors com pequenas variações.
+        Extraído para método parametrizado na classe base.
+        
+        Args:
+            score: Score obtido (pode ser simples ou weighted)
+            passed: Se estudante passou
+            extra_info: Informação adicional opcional (ex: "Certificate issued")
+        
+        Antes (3× repetido com variações):
+            # Basic
+            if passed:
+                print(f"[BasicProcessor] Student PASSED with {score}%")
+            else:
+                print(f"[BasicProcessor] Student FAILED with {score}%")
+            
+            # Advanced
+            if passed:
+                print(f"[AdvancedProcessor] Student PASSED with {score}% - Certificate issued")
+            else:
+                print(f"[AdvancedProcessor] Student FAILED with {score}%")
+            
+            # Certification
+            if passed:
+                print(f"[CertificationProcessor] Student PASSED with {weighted_score:.1f}% (weighted)")
+            else:
+                print(f"[CertificationProcessor] Student FAILED with {weighted_score:.1f}%")
+        
+        Depois (1× parametrizado):
+            self._log_evaluation_result(score, passed, "Certificate issued")
+        """
+        processor_name = self.__class__.__name__
+        status = "PASSED" if passed else "FAILED"
+        
+        message = f"[{processor_name}] Student {status} with {score:.1f}%"
+        if extra_info:
+            message += f" - {extra_info}"
+        
+        print(message)

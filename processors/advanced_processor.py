@@ -69,10 +69,13 @@ class AdvancedTrainingProcessor(TrainingProcessor):
         - Score >= 80% (mais exigente que básica)
         - Emite certificação RGPD se passar
         
+        REFACTORING T7: Uso de Extract Method da classe base
+        
         Returns:
             dict: Resultado da avaliação com certificação
         """
-        print(f"[AdvancedProcessor] Evaluating student {self.student_id}")
+        # REFATORAÇÃO: Usa método comum
+        self._log_evaluation_start()
         
         # TODO: Em implementação real, receber respostas do quiz
         
@@ -94,10 +97,9 @@ class AdvancedTrainingProcessor(TrainingProcessor):
             'evaluation_type': 'advanced'
         }
         
-        if passed:
-            print(f"[AdvancedProcessor] Student PASSED with {score}% - Certificate issued")
-        else:
-            print(f"[AdvancedProcessor] Student FAILED with {score}%")
+        # REFATORAÇÃO: Usa método comum com informação adicional
+        extra_info = "Certificate issued" if passed else ""
+        self._log_evaluation_result(score, passed, extra_info)
         
         return evaluation_result
     

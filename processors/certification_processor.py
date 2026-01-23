@@ -78,10 +78,13 @@ class CertificationTrainingProcessor(TrainingProcessor):
         - Questões têm pesos diferentes (difíceis valem mais)
         - Emite certificação profissional reconhecida
         
+        REFACTORING T7: Uso de Extract Method da classe base
+        
         Returns:
             dict: Resultado da avaliação com certificação profissional
         """
-        print(f"[CertificationProcessor] Evaluating student {self.student_id}")
+        # REFATORAÇÃO: Usa método comum
+        self._log_evaluation_start()
         
         # TODO: Em implementação real, receber respostas e calcular score ponderado
         
@@ -115,10 +118,9 @@ class CertificationTrainingProcessor(TrainingProcessor):
             'scoring_method': 'weighted'
         }
         
-        if passed:
-            print(f"[CertificationProcessor] Student PASSED with {weighted_score:.1f}% (weighted)")
-        else:
-            print(f"[CertificationProcessor] Student FAILED with {weighted_score:.1f}%")
+        # REFATORAÇÃO: Usa método comum com informação adicional
+        extra_info = "(weighted)" if passed else ""
+        self._log_evaluation_result(weighted_score, passed, extra_info)
         
         return evaluation_result
     
